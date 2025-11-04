@@ -35,9 +35,12 @@ class OperationRequest(BaseModel):
     @classmethod
     def validate_numbers(cls, value):
         """Validate that both a and b are numbers."""
-        if not isinstance(value, (int, float)):
+        if value is None:
             raise ValueError('Both a and b must be numbers.')
-        return float(value)
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            raise ValueError('Both a and b must be numbers.')
 
 # Pydantic model for successful response
 class OperationResponse(BaseModel):
