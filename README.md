@@ -204,7 +204,7 @@ docker run -it --rm <image-name>
 python main.py
 ```
 
-(or update this if the main script is different.)
+The application will be available at `http://127.0.0.1:8000`
 
 - **With Docker**:
 
@@ -214,7 +214,45 @@ docker run -it --rm <image-name>
 
 ---
 
-# 📝 7. Submission Instructions
+# 🧪 7. Running Tests
+
+## Unit Tests
+
+```bash
+pytest tests/unit/ -v
+```
+
+## Integration Tests
+
+```bash
+pytest tests/integration/ -v
+```
+
+## End-to-End Tests
+
+```bash
+# First, install Playwright browsers
+playwright install --with-deps chromium
+
+# Then run E2E tests
+pytest tests/e2e/ -v -m e2e
+```
+
+## Run All Tests
+
+```bash
+pytest tests/ -v
+```
+
+## Run Tests with Coverage
+
+```bash
+pytest --cov=app --cov-report=term-missing --cov-report=html
+```
+
+---
+
+# 📝 8. Submission Instructions
 
 After finishing your work:
 
@@ -225,6 +263,19 @@ git push origin main
 ```
 
 Then submit the GitHub repository link as instructed.
+
+---
+
+# 🔄 9. GitHub Actions CI/CD
+
+This project includes a GitHub Actions workflow that automatically runs tests on every push and pull request. The workflow:
+
+- Tests the application on Python 3.10, 3.11, and 3.12
+- Runs unit tests, integration tests, and end-to-end tests
+- Generates coverage reports
+- Installs Playwright browsers for E2E testing
+
+To view the workflow, check `.github/workflows/ci.yml`.
 
 ---
 
