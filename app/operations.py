@@ -1,5 +1,3 @@
-# app/operations.py
-
 """
 Module: operations.py
 
@@ -131,3 +129,4 @@ def divide(a: Number, b: Number) -> float:
     result = a / b
     logger.debug(f"Division result: {result}")
     return result
+
