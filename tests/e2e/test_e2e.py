@@ -116,9 +116,10 @@ def test_calculator_divide(page, fastapi_server):
     # Click the button that has the exact text "Divide". This triggers the division operation.
     page.click('button:text("Divide")')
     
-    # Use an assertion to check that the text within the result div (with id 'result') is exactly "Calculation Result: 2.0".
+    # Use an assertion to check that the text within the result div (with id 'result') is exactly "Calculation Result: 2".
     # This verifies that the division operation was performed correctly and the result is displayed as expected.
-    assert page.inner_text('#result') == 'Calculation Result: 2.0'
+    # Note: JavaScript converts 2.0 to "2" when displaying, so we check for "2" instead of "2.0"
+    assert page.inner_text('#result') == 'Calculation Result: 2'
 
 @pytest.mark.e2e
 def test_calculator_divide_by_zero(page, fastapi_server):
