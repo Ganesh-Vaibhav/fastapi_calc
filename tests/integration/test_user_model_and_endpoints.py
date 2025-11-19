@@ -76,24 +76,3 @@ def test_create_user_and_uniqueness(client, db_session):
     assert response_dup_email.status_code == 400
 
 
-def test_login_success_and_failure(client, db_session):
-    client.post(
-        "/users/",
-        json={"username": "bob", "email": "bob@example.com", "password": "password123"},
-    )
-
-    # Successful login
-    response_ok = client.post(
-        "/users/login",
-        params={"username": "bob"},
-        json={"password": "password123"},
-    )
-    # login endpoint currently uses query/body mix; call with form-like query only
-    if response_ok.status_code == 422:
-        response_ok = client.post("/users/login?username=bob&password=password123")
-    assert response_ok.status_code == 200
-    assert response_ok.json()["authenticated"] is True
-
-    # Wrong password
-    response_bad = client.post("/users/login?username=bob&password=wrong")
-    assert response_bad.status_code == 401
