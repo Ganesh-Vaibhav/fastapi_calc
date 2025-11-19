@@ -1,0 +1,19 @@
+import pytest
+from pydantic import ValidationError
+
+from app.schemas import UserCreate
+
+
+def test_user_create_valid():
+    user = UserCreate(username="testuser", email="user@example.com", password="password123")
+    assert user.username == "testuser"
+
+
+def test_user_create_invalid_email():
+    with pytest.raises(ValidationError):
+        UserCreate(username="testuser", email="not-an-email", password="password123")
+
+
+def test_user_create_short_password():
+    with pytest.raises(ValidationError):
+        UserCreate(username="testuser", email="user@example.com", password="short")

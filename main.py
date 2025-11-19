@@ -6,6 +6,8 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, field_validator
 from fastapi.exceptions import RequestValidationError
 from app.operations import add, subtract, multiply, divide
+from app.db import Base, engine
+from app.users import router as users_router
 import uvicorn
 import logging
 import sys
@@ -20,6 +22,8 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -69,6 +73,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={"error": error_messages},
     )
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 @app.get("/")
 async def read_root(request: Request):
     """
@@ -76,6 +84,8 @@ async def read_root(request: Request):
     """
     logger.info(f"Root endpoint accessed from {request.client.host if request.client else 'unknown'}")
     return templates.TemplateResponse("index.html", {"request": request})
+
+app.include_router(users_router)
 
 @app.post("/add", response_model=OperationResponse, responses={400: {"model": ErrorResponse}})
 async def add_route(operation: OperationRequest):

@@ -270,12 +270,78 @@ Then submit the GitHub repository link as instructed.
 
 This project includes a GitHub Actions workflow that automatically runs tests on every push and pull request. The workflow:
 
-- Tests the application on Python 3.10, 3.11, and 3.12
-- Runs unit tests, integration tests, and end-to-end tests
+- Uses Python 3.10
+- Runs unit tests, integration tests (including Postgres-backed user tests), and end-to-end tests
 - Generates coverage reports
 - Installs Playwright browsers for E2E testing
 
 To view the workflow, check `.github/workflows/ci.yml`.
+
+---
+
+# 🔐 Secure User Model & Database
+
+This project includes a secure `User` model backed by PostgreSQL using SQLAlchemy:
+
+- `username` and `email` are unique and required.
+- `password_hash` stores a bcrypt-hashed password (no plain-text passwords).
+- `created_at` records when the user was created.
+
+Pydantic schemas:
+
+- `UserCreate` – used for incoming data when creating users (`username`, `email`, `password`).
+- `UserRead` – used for responses, omitting the raw password and exposing `id`, `username`, `email`, `created_at`.
+
+Password hashing uses Passlib with bcrypt, with helpers to hash and verify passwords.
+
+Key endpoints:
+
+- `POST /users/` – create a new user.
+- `POST /users/login` – verify credentials and return a simple authenticated response.
+
+---
+
+# 🧪 Database-Backed Tests Locally
+
+To run the integration tests that depend on PostgreSQL:
+
+1. Start the database (using Docker Compose):
+
+```bash
+docker-compose up -d db
+```
+
+2. Set the test database URL (if you want to override the default):
+
+```bash
+export TEST_DATABASE_URL=postgresql+psycopg2://postgres:mysecretpassword@localhost:5432/fastapi_db_test
+```
+
+3. Run tests:
+
+```bash
+pytest tests/unit/ -v
+pytest tests/integration/ -v
+pytest tests/e2e/ -v -m e2e
+```
+
+---
+
+# 🐳 Docker Hub Image
+
+The GitHub Actions workflow builds and pushes a Docker image to Docker Hub after tests pass.
+
+- Repository: `ganesh396/fastapi_calc`
+- Example tags:
+  - `ganesh396/fastapi_calc:latest`
+  - `ganesh396/fastapi_calc:<git-sha>`
+
+You can pull and run the image with:
+
+```bash
+docker pull ganesh396/fastapi_calc:latest
+docker run -it --rm -p 8000:8000 ganesh396/fastapi_calc:latest
+```
 
 ---
 
