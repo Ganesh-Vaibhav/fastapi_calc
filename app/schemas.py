@@ -18,3 +18,7 @@ class UserRead(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class LoginRequest(BaseModel):
+    password: str = Field(..., min_length=8)

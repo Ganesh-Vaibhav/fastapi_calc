@@ -40,7 +40,7 @@ def create_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
 def login(
     username: Optional[str] = None,
     email: Optional[str] = None,
-    password: str = "",
+    credentials: schemas.LoginRequest = Depends(),
     db: Session = Depends(get_db),
 ):
     if not username and not email:
@@ -53,7 +53,7 @@ def login(
         query = query.filter(models.User.email == email)
 
     user = query.first()
-    if not user or not security.verify_password(password, user.password_hash):
+    if not user or not security.verify_password(credentials.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     return {"authenticated": True, "user": schemas.UserRead.model_validate(user)}
