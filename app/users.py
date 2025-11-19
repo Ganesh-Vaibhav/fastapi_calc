@@ -40,7 +40,7 @@ def create_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
 def login(
     username: Optional[str] = None,
     email: Optional[str] = None,
-    credentials: schemas.LoginRequest = Depends(),
+    credentials: schemas.LoginRequest = ...,  # parsed from JSON body
     db: Session = Depends(get_db),
 ):
     if not username and not email:
