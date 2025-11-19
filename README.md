@@ -332,10 +332,7 @@ pytest tests/e2e/ -v -m e2e
 The GitHub Actions workflow builds and pushes a Docker image to Docker Hub after tests pass.
 
 - Repository: `ganesh396/fastapi_calc`
-- Example tags:
-  - `ganesh396/fastapi_calc:latest`
-  - `ganesh396/fastapi_calc:<git-sha>`
-
+- tags: `docker pull ganesh396/fastapi_calc:latest`
 You can pull and run the image with:
 
 ```bash
