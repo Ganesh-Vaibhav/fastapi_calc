@@ -252,7 +252,30 @@ pytest --cov=app --cov-report=term-missing --cov-report=html
 
 ---
 
+---
+
+# 🧮 Calculation Model Tests
+
+To run the specific tests for the Calculation model:
+
+## Unit Tests
+
+```bash
+pytest tests/unit/test_factory.py tests/unit/test_schemas.py
+```
+
+## Integration Tests
+
+To run integration tests locally without a running Postgres container, you can use SQLite:
+
+```bash
+TEST_DATABASE_URL=sqlite:///./test.db pytest tests/integration/test_calculation_model.py
+```
+
+---
+
 # 📝 8. Submission Instructions
+
 
 After finishing your work:
 
