@@ -19,7 +19,7 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-@router.post("/", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     user = models.User(
         username=user_in.username,

@@ -8,6 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from app.operations import add, subtract, multiply, divide
 from app.db import Base, engine
 from app.users import router as users_router
+from app.calculations import router as calculations_router
 import uvicorn
 import logging
 import sys
@@ -86,6 +87,7 @@ async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 app.include_router(users_router)
+app.include_router(calculations_router)
 
 @app.post("/add", response_model=OperationResponse, responses={400: {"model": ErrorResponse}})
 async def add_route(operation: OperationRequest):

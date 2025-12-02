@@ -307,7 +307,7 @@ To view the workflow, check `.github/workflows/ci.yml`.
 This project includes a secure `User` model backed by PostgreSQL using SQLAlchemy:
 
 - `username` and `email` are unique and required.
-- `password_hash` stores a bcrypt-hashed password (no plain-text passwords).
+- `password_hash` stores a pbkdf2_sha256-hashed password (no plain-text passwords).
 - `created_at` records when the user was created.
 
 Pydantic schemas:
@@ -315,18 +315,36 @@ Pydantic schemas:
 - `UserCreate` – used for incoming data when creating users (`username`, `email`, `password`).
 - `UserRead` – used for responses, omitting the raw password and exposing `id`, `username`, `email`, `created_at`.
 
-Password hashing uses Passlib with bcrypt, with helpers to hash and verify passwords.
+Password hashing uses Passlib with pbkdf2_sha256, with helpers to hash and verify passwords.
 
 Key endpoints:
 
-- `POST /users/` – create a new user.
+- `POST /users/register` – create a new user.
 - `POST /users/login` – verify credentials and return a simple authenticated response.
+
+### Calculation Routes (BREAD)
+
+- `GET /calculations` – Browse all calculations.
+- `GET /calculations/{id}` – Read a specific calculation.
+- `POST /calculations` – Add a new calculation.
+- `PUT /calculations/{id}` – Edit a calculation.
+- `DELETE /calculations/{id}` – Delete a calculation.
 
 ---
 
 # 🧪 Database-Backed Tests Locally
 
-To run the integration tests that depend on PostgreSQL:
+To run the integration tests that depend on a database:
+
+**Option 1: Using SQLite (Recommended for local dev)**
+
+The tests are configured to automatically use an in-memory SQLite database if `TEST_DATABASE_URL` is not set to a Postgres URL.
+
+```bash
+pytest tests/integration/ -v
+```
+
+**Option 2: Using PostgreSQL (Docker)**
 
 1. Start the database (using Docker Compose):
 
@@ -334,7 +352,7 @@ To run the integration tests that depend on PostgreSQL:
 docker-compose up -d db
 ```
 
-2. Set the test database URL (if you want to override the default):
+2. Set the test database URL:
 
 ```bash
 export TEST_DATABASE_URL=postgresql+psycopg2://postgres:mysecretpassword@localhost:5432/fastapi_db_test
@@ -343,9 +361,7 @@ export TEST_DATABASE_URL=postgresql+psycopg2://postgres:mysecretpassword@localho
 3. Run tests:
 
 ```bash
-pytest tests/unit/ -v
 pytest tests/integration/ -v
-pytest tests/e2e/ -v -m e2e
 ```
 
 ---
