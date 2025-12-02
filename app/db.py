@@ -12,7 +12,12 @@ DATABASE_URL = os.getenv(
     ),
 )
 
-engine = create_engine(DATABASE_URL, future=True)
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+else:
+    connect_args = {}
+
+engine = create_engine(DATABASE_URL, future=True, connect_args=connect_args)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
