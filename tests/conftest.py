@@ -106,7 +106,8 @@ def page(browser):
     """
     page = browser.new_page()
     yield page
-    page.close()
+
+from app.dependencies import get_db
 
 @pytest.fixture
 def client(db_session):

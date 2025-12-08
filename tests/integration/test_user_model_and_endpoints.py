@@ -37,18 +37,16 @@ def test_login_user(client, db_session):
     # Login success
     response = client.post(
         "/users/login",
-        json={"password": "password123"},
-        params={"username": "bob"}
+        json={"username": "bob", "password": "password123"}
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["authenticated"] is True
-    assert data["user"]["username"] == "bob"
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
 
     # Login failure
     response_fail = client.post(
         "/users/login",
-        json={"password": "wrongpassword"},
-        params={"username": "bob"}
+        json={"username": "bob", "password": "wrongpassword"}
     )
     assert response_fail.status_code == 401
