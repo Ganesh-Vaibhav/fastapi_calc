@@ -1,149 +1,105 @@
-# tests/e2e/test_e2e.py
-
-import pytest  # Import the pytest framework for writing and running tests
-
-# The following decorators and functions define E2E tests for the FastAPI calculator application.
+import pytest
+from playwright.sync_api import Page, expect
 
 @pytest.mark.e2e
-def test_hello_world(page, fastapi_server):
-    """
-    Test that the homepage displays "Hello World".
+def test_bread_flow(page: Page, fastapi_server):
+    page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
+    
+    # 1. Register
+    import random
+    import string
+    random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    username = f"e2euser_{random_suffix}"
+    email = f"e2e_{random_suffix}@example.com"
+    password = "password123"
 
-    This test verifies that when a user navigates to the homepage of the application,
-    the main header (`<h1>`) correctly displays the text "Hello World". This ensures
-    that the server is running and serving the correct template.
-    """
-    # Navigate the browser to the homepage URL of the FastAPI application.
-    page.goto('http://localhost:8000')
-    
-    # Use an assertion to check that the text within the first <h1> tag is exactly "Hello World".
-    # If the text does not match, the test will fail.
-    assert page.inner_text('h1') == 'Hello World'
+    try:
+        page.goto("http://127.0.0.1:8000")
+        page.click("text=Register")
+        page.fill("#regUsername", username)
+        page.fill("#regEmail", email)
+        page.fill("#regPassword", password)
+        
+        # Handle alert
+        def handle_dialog(dialog):
+            assert dialog.message == "Registration successful! Please login."
+            dialog.accept()
+        
+        page.on("dialog", handle_dialog)
+        page.click("button:has-text('Register')")
+        
+        # 2. Login
+        expect(page.locator("#loginForm")).to_be_visible()
+        page.fill("#loginUsername", username)
+        page.fill("#loginPassword", password)
+        page.click("button:has-text('Login')")
+        
+        # 3. Verify Dashboard
+        expect(page.locator("#dashboardSection")).to_be_visible()
+    except Exception:
+        page.screenshot(path="failure.png")
+        error_text = page.inner_text("#authError")
+        with open("error.txt", "w") as f:
+            f.write(f"Auth Error: {error_text}")
+        raise
 
-@pytest.mark.e2e
-def test_calculator_add(page, fastapi_server):
-    """
-    Test the addition functionality of the calculator.
+    expect(page.locator("h2:has-text('My Calculations')")).to_be_visible()
+    
+    # 4. Add Calculation
+    page.fill("#calcA", "10")
+    page.fill("#calcB", "5")
+    page.select_option("#calcType", "add")
+    page.click("button:has-text('Calculate')")
+    
+    # 5. Verify in Table
+    row = page.locator("table tbody tr").first
+    expect(row).to_contain_text("10")
+    expect(row).to_contain_text("5")
+    expect(row).to_contain_text("add")
+    expect(row).to_contain_text("15")
+    
+    # 6. Edit Calculation
+    # We need to handle prompt for edit
+    # Mocking prompt is tricky in Playwright directly without page.on('dialog')
+    # But for edit we have multiple prompts.
+    # Let's define a handler that returns values sequentially or checks message
+    
+    values = ["20", "4", "subtract"]
+    value_index = 0
+    
+    def handle_edit_dialog(dialog):
+        nonlocal value_index
+        if dialog.type == "prompt":
+            dialog.accept(values[value_index])
+            value_index = (value_index + 1) % 3
+        else:
+            dialog.accept()
 
-    This test simulates a user performing an addition operation using the calculator
-    on the frontend. It fills in two numbers, clicks the "Add" button, and verifies
-    that the result displayed is correct.
-    """
-    # Navigate the browser to the homepage URL of the FastAPI application.
-    page.goto('http://localhost:8000')
+    # Remove previous listener and add new one
+    page.remove_listener("dialog", handle_dialog)
+    page.on("dialog", handle_edit_dialog)
     
-    # Fill in the first number input field (with id 'a') with the value '10'.
-    page.fill('#a', '10')
+    page.click(".edit-btn")
     
-    # Fill in the second number input field (with id 'b') with the value '5'.
-    page.fill('#b', '5')
+    # 7. Verify Update
+    # Wait for table update - result should be 16 (20 - 4)
+    expect(row).to_contain_text("20")
+    expect(row).to_contain_text("4")
+    expect(row).to_contain_text("subtract")
+    expect(row).to_contain_text("16")
     
-    # Click the button that has the exact text "Add". This triggers the addition operation.
-    page.click('button:text("Add")')
+    # 8. Delete Calculation
+    def handle_confirm(dialog):
+        dialog.accept()
+        
+    page.remove_listener("dialog", handle_edit_dialog)
+    page.on("dialog", handle_confirm)
     
-    # Use an assertion to check that the text within the result div (with id 'result') is exactly "Result: 15".
-    # This verifies that the addition operation was performed correctly and the result is displayed as expected.
-    assert page.inner_text('#result') == 'Calculation Result: 15'
-
-@pytest.mark.e2e
-def test_calculator_subtract(page, fastapi_server):
-    """
-    Test the subtraction functionality of the calculator.
-
-    This test simulates a user performing a subtraction operation using the calculator
-    on the frontend. It fills in two numbers, clicks the "Subtract" button, and verifies
-    that the result displayed is correct.
-    """
-    # Navigate the browser to the homepage URL of the FastAPI application.
-    page.goto('http://localhost:8000')
+    page.click(".delete-btn")
     
-    # Fill in the first number input field (with id 'a') with the value '10'.
-    page.fill('#a', '10')
+    # 9. Verify Gone
+    expect(page.locator("table tbody tr")).to_have_count(0)
     
-    # Fill in the second number input field (with id 'b') with the value '5'.
-    page.fill('#b', '5')
-    
-    # Click the button that has the exact text "Subtract". This triggers the subtraction operation.
-    page.click('button:text("Subtract")')
-    
-    # Use an assertion to check that the text within the result div (with id 'result') is exactly "Calculation Result: 5".
-    # This verifies that the subtraction operation was performed correctly and the result is displayed as expected.
-    assert page.inner_text('#result') == 'Calculation Result: 5'
-
-@pytest.mark.e2e
-def test_calculator_multiply(page, fastapi_server):
-    """
-    Test the multiplication functionality of the calculator.
-
-    This test simulates a user performing a multiplication operation using the calculator
-    on the frontend. It fills in two numbers, clicks the "Multiply" button, and verifies
-    that the result displayed is correct.
-    """
-    # Navigate the browser to the homepage URL of the FastAPI application.
-    page.goto('http://localhost:8000')
-    
-    # Fill in the first number input field (with id 'a') with the value '10'.
-    page.fill('#a', '10')
-    
-    # Fill in the second number input field (with id 'b') with the value '5'.
-    page.fill('#b', '5')
-    
-    # Click the button that has the exact text "Multiply". This triggers the multiplication operation.
-    page.click('button:text("Multiply")')
-    
-    # Use an assertion to check that the text within the result div (with id 'result') is exactly "Calculation Result: 50".
-    # This verifies that the multiplication operation was performed correctly and the result is displayed as expected.
-    assert page.inner_text('#result') == 'Calculation Result: 50'
-
-@pytest.mark.e2e
-def test_calculator_divide(page, fastapi_server):
-    """
-    Test the division functionality of the calculator.
-
-    This test simulates a user performing a division operation using the calculator
-    on the frontend. It fills in two numbers, clicks the "Divide" button, and verifies
-    that the result displayed is correct.
-    """
-    # Navigate the browser to the homepage URL of the FastAPI application.
-    page.goto('http://localhost:8000')
-    
-    # Fill in the first number input field (with id 'a') with the value '10'.
-    page.fill('#a', '10')
-    
-    # Fill in the second number input field (with id 'b') with the value '5'.
-    page.fill('#b', '5')
-    
-    # Click the button that has the exact text "Divide". This triggers the division operation.
-    page.click('button:text("Divide")')
-    
-    # Use an assertion to check that the text within the result div (with id 'result') is exactly "Calculation Result: 2".
-    # This verifies that the division operation was performed correctly and the result is displayed as expected.
-    # Note: JavaScript converts 2.0 to "2" when displaying, so we check for "2" instead of "2.0"
-    assert page.inner_text('#result') == 'Calculation Result: 2'
-
-@pytest.mark.e2e
-def test_calculator_divide_by_zero(page, fastapi_server):
-    """
-    Test the divide by zero functionality of the calculator.
-
-    This test simulates a user attempting to divide a number by zero using the calculator.
-    It fills in the numbers, clicks the "Divide" button, and verifies that the appropriate
-    error message is displayed. This ensures that the application correctly handles invalid
-    operations and provides meaningful feedback to the user.
-    """
-    # Navigate the browser to the homepage URL of the FastAPI application.
-    page.goto('http://localhost:8000')
-    
-    # Fill in the first number input field (with id 'a') with the value '10'.
-    page.fill('#a', '10')
-    
-    # Fill in the second number input field (with id 'b') with the value '0', attempting to divide by zero.
-    page.fill('#b', '0')
-    
-    # Click the button that has the exact text "Divide". This triggers the division operation.
-    page.click('button:text("Divide")')
-    
-    # Use an assertion to check that the text within the result div (with id 'result') is exactly
-    # "Error: Cannot divide by zero!". This verifies that the application handles division by zero
-    # gracefully and displays the correct error message to the user.
-    assert page.inner_text('#result') == 'Error: Cannot divide by zero!'
+    # 10. Logout
+    page.click("#logoutBtn")
+    expect(page.locator("#authSection")).to_be_visible()

@@ -155,28 +155,60 @@ python --version
 
 ---
 
-## Create and Activate a Virtual Environment
+## FastAPI Calculator
 
-(Optional but recommended)
+A simple calculator API built with FastAPI, supporting basic arithmetic operations and history tracking.
+Now includes User Authentication and BREAD (Browse, Read, Edit, Add, Delete) functionality for calculations.
 
+## Features
+
+- **Basic Arithmetic**: Add, Subtract, Multiply, Divide.
+- **User Authentication**: Register, Login, Logout (JWT-based).
+- **Calculation History**: Save, View, Edit, and Delete your own calculations.
+- **Dashboard**: A user-friendly interface to manage calculations.
+- **REST API**: Fully documented API with Swagger UI.
+
+## Tech Stack
+
+- **Backend**: FastAPI, SQLAlchemy, SQLite (PostgreSQL ready).
+- **Frontend**: HTML, CSS, JavaScript (Single Page Application).
+- **Testing**: Pytest, Playwright (E2E).
+- **Containerization**: Docker.
+
+## Setup & Run
+
+1. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Run the Application**:
+   ```bash
+   uvicorn main:app --reload
+   ```
+   Open [http://localhost:8000](http://localhost:8000) in your browser.
+
+3. **Run Tests**:
+   ```bash
+   # Unit and Integration Tests
+   pytest tests/unit tests/integration
+
+   # E2E Tests (requires Playwright browsers)
+   playwright install chromium
+   pytest tests/e2e
+   ```
+
+## Docker
+
+Build and run with Docker:
 ```bash
-python3 -m venv venv
-source venv/bin/activate   # Mac/Linux
-venv\Scripts\activate.bat  # Windows
+docker build -t fastapi_calc .
+docker run -p 8000:8000 fastapi_calc
 ```
 
-### Install Required Packages
+## API Documentation
 
-```bash
-pip install -r requirements.txt
-```
-
----
-
-# 🐳 5. (Optional) Docker Setup
-
-> Skip if Docker isn't used in this module.
-
+Visit [http://localhost:8000/docs](http://localhost:8000/docs) for the interactive Swagger UI.
 ## Install Docker
 
 - [Install Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/)

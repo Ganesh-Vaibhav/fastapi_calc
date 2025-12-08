@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -21,6 +22,8 @@ class UserRead(UserBase):
 
 
 class LoginRequest(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
     password: str = Field(..., min_length=8)
 
 
@@ -38,3 +41,12 @@ class CalculationRead(CalculationCreate):
 
     class Config:
         from_attributes = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None

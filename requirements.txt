@@ -42,3 +42,4 @@ tomlkit==0.13.2
 typing_extensions==4.12.2
 urllib3==2.2.3
 uvicorn==0.32.0
+python-jose[cryptography]==3.3.0

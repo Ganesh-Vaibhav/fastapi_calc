@@ -36,24 +36,26 @@ def create_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     return user
 
 
-@router.post("/login")
+@router.post("/login", response_model=schemas.Token)
 def login(
-    username: Optional[str] = None,
-    email: Optional[str] = None,
-    credentials: schemas.LoginRequest = ...,  # parsed from JSON body
+    credentials: schemas.LoginRequest,
     db: Session = Depends(get_db),
 ):
-    if not username and not email:
+    if not credentials.username and not credentials.email:
         raise HTTPException(status_code=400, detail="Username or email is required")
 
     query = db.query(models.User)
-    if username:
-        query = query.filter(models.User.username == username)
-    if email:
-        query = query.filter(models.User.email == email)
+    if credentials.username:
+        query = query.filter(models.User.username == credentials.username)
+    if credentials.email:
+        query = query.filter(models.User.email == credentials.email)
 
     user = query.first()
     if not user or not security.verify_password(credentials.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    return {"authenticated": True, "user": schemas.UserRead.model_validate(user)}
+    access_token_expires = security.timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = security.create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
