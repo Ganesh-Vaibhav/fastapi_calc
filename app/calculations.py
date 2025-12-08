@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from . import models, schemas, operations
-from .users import get_db, security
+from .users import security
+from .dependencies import get_db
 
 router = APIRouter(prefix="/calculations", tags=["calculations"])
 

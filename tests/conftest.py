@@ -7,7 +7,8 @@ import sys
 import os
 
 # Set test database URL before importing app
-os.environ["TEST_DATABASE_URL"] = "sqlite:///./test.db"
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ["TEST_DATABASE_URL"] = f"sqlite:///{os.path.join(project_root, 'test.db')}"
 
 from fastapi.testclient import TestClient
 from main import app
@@ -30,7 +31,7 @@ def db_session(db_engine):
     connection.close()
 
 @pytest.fixture(scope='session')
-def fastapi_server():
+def fastapi_server(db_engine):
     """
     Fixture to start the FastAPI server before E2E tests and stop it after tests complete.
     """

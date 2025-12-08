@@ -2,7 +2,7 @@ import os
 import pytest
 
 # Set env var before importing app modules to avoid Postgres connection attempt
-os.environ["TEST_DATABASE_URL"] = "sqlite:///:memory:"
+# os.environ["TEST_DATABASE_URL"] = "sqlite:///:memory:"
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
