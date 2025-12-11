@@ -27,6 +27,16 @@ class LoginRequest(BaseModel):
     password: str = Field(..., min_length=8)
 
 
+class UserUpdate(BaseModel):
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: Optional[EmailStr] = None
+
+
+class PasswordChange(BaseModel):
+    old_password: str = Field(..., min_length=8)
+    new_password: str = Field(..., min_length=8)
+
+
 class CalculationCreate(BaseModel):
     a: float
     b: float

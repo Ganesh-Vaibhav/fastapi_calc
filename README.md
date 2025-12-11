@@ -164,6 +164,7 @@ Now includes User Authentication and BREAD (Browse, Read, Edit, Add, Delete) fun
 
 - **Basic Arithmetic**: Add, Subtract, Multiply, Divide.
 - **User Authentication**: Register, Login, Logout (JWT-based).
+- **User Profile**: Update username/email and change password.
 - **Calculation History**: Save, View, Edit, and Delete your own calculations.
 - **Dashboard**: A user-friendly interface to manage calculations.
 - **REST API**: Fully documented API with Swagger UI.
@@ -353,6 +354,8 @@ Key endpoints:
 
 - `POST /users/register` – create a new user.
 - `POST /users/login` – verify credentials and return a simple authenticated response.
+- `PUT /users/me` – update user profile (username, email).
+- `POST /users/me/password` – change user password.
 
 ### Calculation Routes (BREAD)
 

@@ -103,3 +103,76 @@ def test_bread_flow(page: Page, fastapi_server):
     # 10. Logout
     page.click("#logoutBtn")
     expect(page.locator("#authSection")).to_be_visible()
+
+def test_profile_update_flow(page: Page, fastapi_server):
+    # Register and Login
+    page.goto("http://127.0.0.1:8000/")
+    page.click("text=Register")
+    page.fill("#regUsername", "profileuser")
+    page.fill("#regEmail", "profile@example.com")
+    page.fill("#regPassword", "password123")
+    page.click("button:has-text('Register')")
+    
+    # Handle alert
+    page.on("dialog", lambda dialog: dialog.accept())
+    
+    page.fill("#loginUsername", "profileuser")
+    page.fill("#loginPassword", "password123")
+    page.click("button:has-text('Login')")
+    
+    # Go to Profile
+    page.wait_for_selector("#profileBtn")
+    page.click("#profileBtn")
+    
+    # Update Username
+    page.fill("#profileUsername", "newprofileuser")
+    page.click("button:has-text('Update Profile')")
+    
+    # Should be logged out
+    page.wait_for_selector("#loginUsername")
+    
+    # Login with new username
+    page.fill("#loginUsername", "newprofileuser")
+    page.fill("#loginPassword", "password123")
+    page.click("button:has-text('Login')")
+    
+    # Verify login success
+    page.wait_for_selector("#profileBtn")
+    assert page.is_visible("#profileBtn")
+
+def test_password_change_flow(page: Page, fastapi_server):
+    # Register and Login
+    page.goto("http://127.0.0.1:8000/")
+    page.click("text=Register")
+    page.fill("#regUsername", "passworduser")
+    page.fill("#regEmail", "password@example.com")
+    page.fill("#regPassword", "password123")
+    page.click("button:has-text('Register')")
+    
+    # Handle alert
+    page.on("dialog", lambda dialog: dialog.accept())
+    
+    page.fill("#loginUsername", "passworduser")
+    page.fill("#loginPassword", "password123")
+    page.click("button:has-text('Login')")
+    
+    # Go to Profile
+    page.wait_for_selector("#profileBtn")
+    page.click("#profileBtn")
+    
+    # Change Password
+    page.fill("#oldPassword", "password123")
+    page.fill("#newPassword", "newpassword456")
+    page.click("button:has-text('Change Password')")
+    
+    # Should be logged out
+    page.wait_for_selector("#loginUsername")
+    
+    # Login with new password
+    page.fill("#loginUsername", "passworduser")
+    page.fill("#loginPassword", "newpassword456")
+    page.click("button:has-text('Login')")
+    
+    # Verify login success
+    page.wait_for_selector("#profileBtn")
+    assert page.is_visible("#profileBtn")

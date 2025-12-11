@@ -164,7 +164,10 @@
     </div>
 
     <div class="container hidden" id="dashboardSection">
-        <button id="logoutBtn" onclick="logout()">Logout</button>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <button id="profileBtn" onclick="showProfile()" style="width: auto; background-color: #17a2b8;">Profile</button>
+            <button id="logoutBtn" onclick="logout()" style="width: auto;">Logout</button>
+        </div>
         <h2>My Calculations</h2>
 
         <div class="form-group">
@@ -195,6 +198,32 @@
                 <!-- Calculations will be loaded here -->
             </tbody>
         </table>
+    </div>
+
+    <div class="container hidden" id="profileSection">
+        <button onclick="showDashboard()" style="width: auto; margin-bottom: 20px; background-color: #6c757d;">Back to Dashboard</button>
+        <h2>User Profile</h2>
+        
+        <div class="form-group">
+            <h3>Update Profile</h3>
+            <label for="profileUsername">Username</label>
+            <input type="text" id="profileUsername">
+            <label for="profileEmail">Email</label>
+            <input type="email" id="profileEmail">
+            <button onclick="updateProfile()" style="margin-top: 10px;">Update Profile</button>
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <h3>Change Password</h3>
+            <label for="oldPassword">Old Password</label>
+            <input type="password" id="oldPassword">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword">
+            <button onclick="changePassword()" style="margin-top: 10px; background-color: #ffc107; color: black;">Change Password</button>
+        </div>
+        <div id="profileError" class="error"></div>
     </div>
 
     <script>
@@ -268,6 +297,7 @@
             localStorage.removeItem('token');
             token = null;
             document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('profileSection').classList.add('hidden');
             document.getElementById('authSection').classList.remove('hidden');
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
@@ -275,8 +305,86 @@
 
         function showDashboard() {
             document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('profileSection').classList.add('hidden');
             document.getElementById('dashboardSection').classList.remove('hidden');
             loadCalculations();
+        }
+
+        function showProfile() {
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('profileSection').classList.remove('hidden');
+            document.getElementById('profileError').innerText = '';
+            // Ideally fetch current user info to populate fields, but for now we can leave them empty or rely on user knowing what they want to change.
+            // Let's try to be nice and leave them empty as "change to" fields, or we could fetch /users/me if we had a GET endpoint.
+            // Since we only added PUT, we'll treat them as "enter new value".
+        }
+
+        async function updateProfile() {
+            const username = document.getElementById('profileUsername').value;
+            const email = document.getElementById('profileEmail').value;
+            
+            const body = {};
+            if (username) body.username = username;
+            if (email) body.email = email;
+
+            if (Object.keys(body).length === 0) {
+                alert("Please enter a username or email to update.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/users/me`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (response.ok) {
+                    alert('Profile updated successfully. Please login again.');
+                    logout();
+                } else {
+                    const data = await response.json();
+                    document.getElementById('profileError').innerText = data.detail || 'Update failed';
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                document.getElementById('profileError').innerText = 'Network error';
+            }
+        }
+
+        async function changePassword() {
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            if (!oldPassword || !newPassword) {
+                alert("Please enter both old and new passwords.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/users/me/password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ old_password: oldPassword, new_password: newPassword })
+                });
+
+                if (response.ok) {
+                    alert('Password changed successfully. Please login again.');
+                    logout();
+                } else {
+                    const data = await response.json();
+                    document.getElementById('profileError').innerText = data.detail || 'Password change failed';
+                }
+            } catch (error) {
+                console.error('Error changing password:', error);
+                document.getElementById('profileError').innerText = 'Network error';
+            }
         }
 
         async function loadCalculations() {
@@ -383,7 +491,6 @@
             }
         }
     </script>
-
 </body>
 
 </html>
